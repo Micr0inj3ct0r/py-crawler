@@ -1,0 +1,123 @@
+#!/usr/bin/python3
+# Module's Used : 
+# argparse : https://docs.python.org/3/library/argparse.html
+# requests : https://docs.python-requests.org/en/latest/
+# colorama : https://pypi.org/project/colorama/
+# bs4 : https://www.crummy.com/software/BeautifulSoup/bs4/doc/
+# version --> 1.0 
+# name --> py-crawler
+# spiader and crawler for find link's on the page's
+# This tools for Web Hacker's , Hackers HackerOne and bugbounty For Information Gathering .
+# Created by Micr0Inj3ct0r@protonmail.com
+# github : https://github.com/Micr0inj3ct0r
+# Date : 26/Sep/2021
+import argparse
+import os
+import requests
+import colorama
+import sys
+from bs4 import SoupStrainer , BeautifulSoup
+from fake_useragent import UserAgent
+class Crawler():
+    # argparser for arg parsing .:
+    parser = argparse.ArgumentParser(description='Crawler Web Sites')
+    parser.add_argument('--proxy', '-P',type=str,help='Insert Proxy Like : 10.10.10.10:8080',required=True)
+    parser.add_argument('--domain', '-D',type=str,help='Insert Host target Like : https://example.com',required=True)
+    args = parser.parse_args()
+    # proxy Functioin os Check the live proxy and change IP
+    # [!!!!] We are not use a __init__() function and self for error's !
+    def __banner__():
+        print(colorama.Fore.LIGHTYELLOW_EX+"""
+    :::::::: :::::::::     :::    :::       ::::::       ::::::::::::::::::: 
+    :+:    :+::+:    :+:  :+: :+:  :+:       :+::+:       :+:       :+:    :+: 
+   +:+       +:+    +:+ +:+   +:+ +:+       +:++:+       +:+       +:+    +:+  
+  +#+       +#++:++#: +#++:++#++:+#+  +:+  +#++#+       +#++:++#  +#++:++#:    
+ +#+       +#+    +#++#+     +#++#+ +#+#+ +#++#+       +#+       +#+    +#+    
+#+#    #+##+#    #+##+#     #+# #+#+# #+#+# #+#       #+#       #+#    #+#     
+######## ###    ######     ###  ###   ###  #######################    ### 
+            Created by : Micr0inj3ct0r@protonmail.com 
+            If you Finded Bug Contact Me for Fix .
+            """)
+    __banner__()
+    def __proxy__(proxy):
+        # try for except error's 
+        try:
+            # we are use a api.my-ip,io/ip for check live proxy and changed the IP
+            proxies = {"http":f"http://{proxy}","https":f"http://{proxy}"}
+            r=requests.get("https://api.my-ip.io/ip",proxies=proxies)
+            # print response 
+            if r.status_code == 200:
+                print (colorama.Fore.LIGHTGREEN_EX+f"You'r IP Changed :{r.text}")
+            # except error
+            else:
+                print (colorama.Fore.LIGHTRED_EX+"Error Connection \n")
+                sys.exit(0)
+        # except requests.exceptions.ProxyError bypass
+        except requests.exceptions.ProxyError:
+            print(colorama.Fore.LIGHTRED_EX+"Check The Internet Connection OR proxy Live .")
+            sys.exit(0)
+    # args set n fubction .
+    __proxy__(proxy=args.proxy)
+    # identify host of target live or no .
+    def __idntify_host__(target,proxy):
+        # proxies
+        proxies = {
+            "http":f"http://{proxy}",
+            "https":f"http://{proxy}"
+        }
+        try:
+            # requests to target 
+            re = requests.get(target,proxies=proxies)
+            # Checking .... :
+            if re.status_code == 200:
+                # massage's
+                print(colorama.Fore.LIGHTGREEN_EX+"Web site Identfying Done .")
+                print(colorama.Fore.LIGHTGREEN_EX+"[*] Crawling Just started [*]")
+                # Counters
+                count = 1
+                # soup for parse html tag's
+                soup = BeautifulSoup(re.content, 'html.parser')
+                # for loop for find 'a' tags and href . 
+                for link in soup.find_all('a',href=True):
+                    # filtter's
+                    if link['href']:
+                        # open files and write to file .
+                        targ = target.replace("https://",'_')
+                        file = open("Crawler"+targ+".txt","a+")
+                        file.write(link['href']+'\n')
+                        file.close()
+                        print(colorama.Fore.LIGHTGREEN_EX+"Crawled  --> "+link['href'])
+                        count += 1
+                        print(colorama.Fore.LIGHTWHITE_EX+'Link find : {:02d}:{:02d}'.format(count,0),end='\r')
+                # Function for find more page and parse more tag .
+                def resend():
+                        targ = target.replace("https://","_")
+                        for fs in open('Crawler'+targ+'.txt','r').readlines():
+                            try:
+                                # Filtering . {for fix bug's}
+                                if fs[0:8] == "https://":
+                                    # requests more
+                                    rs = requests.get(fs,proxies=proxies)
+                                    soup_2 = BeautifulSoup(rs.content, 'html.parser')
+                                    # parser a tags
+                                    for links in soup_2.find_all('a',href=True):
+                                        if links['href']:
+                                            # write to file
+                                            file = open("Crawler"+targ+".txt","a+")
+                                            file.write(links['href']+'\n')
+                                            file.close()
+                                            print(colorama.Fore.LIGHTGREEN_EX+"Crawled  --> "+links['href'])
+                                elif fs[0:8] != "https://":
+                                    pass
+                            except requests.exceptions.ConnectionError as e:
+                                pass
+                resend()
+            # Bad requests example 404 or 403
+            else:
+                print(colorama.Fore.LIGHTRED_EX+"[ERROR] Web site is a Bad requests .")
+                sys.exit(0)
+        # exception error'r
+        except Exception as e:
+            print(e)
+            print(colorama.Fore.LIGHTRED_EX+"Check proxy OR internet Connection .")
+    __idntify_host__(target=args.domain,proxy=args.proxy)
