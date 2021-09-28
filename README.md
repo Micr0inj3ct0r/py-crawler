@@ -11,7 +11,6 @@ You need To hack example.com but this web site filter You'r Country IP For Examp
 You for information gathering from example.com using the Crawling method for find links subdomains and Domains .
 You Using the Zap proxy But ! You'r IP is Filter , so you con not using ZAP proxy for this {Zap Not Support proxy .}
 And then now you need the this tool for Crawling . {This Tool Support Proxy .}
-# preview :
 
 # installion : 
         sudo pip3 install bs4 && sudo pip3 install requests && sudo pip3 install colorama && sudo pip install argparse
